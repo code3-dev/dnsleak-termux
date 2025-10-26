@@ -1,25 +1,30 @@
 #!/data/data/com.termux/files/usr/bin/env bash
 set -euo pipefail
 
-# 1) install packages
+# ----------------------------------------
+# 1) Install required packages
+# ----------------------------------------
 pkg update -y
 pkg install -y git golang which
 
-# 2) persistent Go env (use ~/.profile so Termux shells load it)
-# Avoid duplicate lines by grepping first
+# ----------------------------------------
+# 2) Persistent Go environment
+# ----------------------------------------
+# Avoid duplicate lines
 grep -qxF 'export GOPATH=$HOME/go' ~/.profile || echo 'export GOPATH=$HOME/go' >> ~/.profile
 grep -qxF 'export GOBIN=$GOPATH/bin' ~/.profile || echo 'export GOBIN=$GOPATH/bin' >> ~/.profile
-# Append PATH entry but avoid repeating GOBIN multiple times
 if ! grep -q 'export PATH=.*\$GOBIN' ~/.profile; then
   echo 'export PATH=$PATH:$GOBIN' >> ~/.profile
 fi
 
-# apply to current shell
+# Apply to current shell
 export GOPATH="$HOME/go"
 export GOBIN="$GOPATH/bin"
 mkdir -p "$GOBIN"
 
-# 3) clone (or update) the dnsleak repo and build
+# ----------------------------------------
+# 3) Clone or update dnsleak repo
+# ----------------------------------------
 WORKDIR="$HOME/src"
 mkdir -p "$WORKDIR"
 cd "$WORKDIR"
@@ -33,15 +38,26 @@ else
   cd dnsleak
 fi
 
-# build into GOBIN (handles module path mismatch by building locally)
+# ----------------------------------------
+# 4) Ensure Go modules are tidy & dependencies fetched
+# ----------------------------------------
+go mod tidy
+
+# ----------------------------------------
+# 5) Build into GOBIN
+# ----------------------------------------
 go build -o "$GOBIN/dnsleak" .
 
-# 4) make executable and symlink into Termux prefix (safe, overwrites existing symlink)
+# ----------------------------------------
+# 6) Make executable & symlink into Termux prefix
+# ----------------------------------------
 chmod +x "$GOBIN/dnsleak"
 ln -sf "$GOBIN/dnsleak" "$PREFIX/bin/dnsleak"
 chmod +x "$PREFIX/bin/dnsleak"
 
-# 5) verification
+# ----------------------------------------
+# 7) Verification
+# ----------------------------------------
 echo "---- verification ----"
 echo "GOPATH=$GOPATH"
 echo "GOBIN=$GOBIN"

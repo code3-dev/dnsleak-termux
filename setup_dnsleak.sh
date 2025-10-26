@@ -5,7 +5,7 @@ set -euo pipefail
 # 1) Install required packages
 # ----------------------------------------
 pkg update -y
-pkg install -y git golang which
+pkg install -y git golang which ca-certificates openssl-tool
 
 # ----------------------------------------
 # 2) Persistent Go environment
